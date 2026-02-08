@@ -30,10 +30,7 @@ Pour répondre aux exigences des environnements de trading, plusieurs optimisati
 - **Professional UI** : Grille dynamique avec effets visuels sur changement de prix (Price Flashing).
 
 ## 🛠️ Installation & Lancement
-1. Cloner le repo : `git clone https://github.com/votre-nom/QuantTradingPortfolio.git`
-2. Ouvrir `QuantTradingPortfolio.sln` dans Visual Studio 2022.
+1. Cloner le repo : `git clone https://github.com/votre-nom/QuantTrading.git`
+2. Ouvrir `QuantTrading.sln` dans Visual Studio 2022.
 3. Restaurer les packages NuGet.
 4. Lancer le projet `QuantTrading.UI`.
-
----
-*Projet réalisé dans le cadre d'une démonstration de compétences techniques pour le secteur bancaire (CIB).*
