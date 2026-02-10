@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using QuantTrading.UI.ViewModels;
-using System.Configuration;
-using System.Data;
 using System.Windows;
+using QuantTading.Engine.Services;
+using QuantTrading.Core.Interfaces;
 
 namespace QuantTrading.UI
 {
@@ -20,11 +20,13 @@ namespace QuantTrading.UI
         {
             var services = new ServiceCollection();
 
-            // 1. Enregistrement des ViewModels
-            services.AddTransient<MainViewModel>();
+            // --- Services (Engine) ---
+            // On enregistre les interfaces vers leurs implémentations concrètes
+            services.AddSingleton<IMarketDataService, RandomMarketDataService>();
+            services.AddSingleton<IPricingService, PricingService>();
 
-            // 2. Enregistrement des Services (Mock pour l'instant ou vides)
-            // Demain on ajoutera : services.AddSingleton<IMarketDataService, RandomMarketDataService>();
+            // --- ViewModels (UI) ---
+            services.AddTransient<MainViewModel>();
 
             return services.BuildServiceProvider();
         }
