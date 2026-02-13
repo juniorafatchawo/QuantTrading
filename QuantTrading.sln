@@ -5,7 +5,7 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantTrading.Core", "QuantTrading.Core\QuantTrading.Core.csproj", "{60BEC1CA-99C1-43D4-9C76-D8D94DF6289D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantTrading.Engine", "QuantTrading.Engine\QuantTading.Engine.csproj", "{27D6524C-5656-468B-A0D4-AA502B647C67}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantTrading.Engine", "QuantTrading.Engine\QuantTrading.Engine.csproj", "{27D6524C-5656-468B-A0D4-AA502B647C67}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantTrading.UI", "QuantTrading.UI\QuantTrading.UI.csproj", "{B5364C6E-FD63-4991-8E28-C446C079E6FD}"
 EndProject

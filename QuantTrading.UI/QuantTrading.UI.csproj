@@ -12,6 +12,11 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageReference Include="System.Reactive" Version="6.1.0" />
+    <PackageReference Include="ReactiveUI.WPF" Version="19.5.41" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuantTrading.Engine\QuantTrading.Engine.csproj" />
   </ItemGroup>
 
 </Project>
