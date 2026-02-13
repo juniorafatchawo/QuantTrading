@@ -23,12 +23,21 @@ namespace QuantTrading.UI.ViewModels
 
         public void Update(PricedOption priced)
         {
-            // Logique pour déterminer la couleur du clignotement
-            ChangeDirection = priced.OptionPrice > OptionPrice ? "Up" :
-                              priced.OptionPrice < OptionPrice ? "Down" : "None";
+            if (priced.OptionPrice > OptionPrice)
+            {
+                ChangeDirection = "Up";
+            }
+            else if (priced.OptionPrice < OptionPrice)
+            {
+                ChangeDirection = "Down";
+            }
+            else
+            {
+                ChangeDirection = "None";
+            }
 
-            SpotPrice = priced.SpotPrice;
             OptionPrice = priced.OptionPrice;
+            SpotPrice = priced.SpotPrice;
             Delta = priced.Greeks.Delta;
             Vega = priced.Greeks.Vega;
             LastUpdate = priced.Timestamp;
