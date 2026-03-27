@@ -1,10 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using QuantTrading.Core.Interfaces;
 using QuantTrading.Core.Models;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Reactive.Concurrency;
-using System.Reactive.Subjects; // Essentiel pour le pont avec la View
+using System.Reactive.Subjects;
 using ReactiveUI;
 
 namespace QuantTrading.UI.ViewModels;
@@ -13,17 +13,37 @@ public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IPricingService _pricingService;
     private IDisposable? _subscription;
+    private CancellationTokenSource _cts = new();
 
-    // 1. Source de diffusion pour le graphique (View)
-    private readonly Subject<PricedOption> _priceStreamSource = new();
+    // --- Chart data management ---
+    // Queue<T> : enqueue/dequeue en O(1), contrairement à List<T>.RemoveAt(0) en O(n)
+    private readonly Queue<double>   _chartPrices = new();
+    private readonly Queue<DateTime> _chartTimes  = new();
+    private const int ChartWindowSize = 50;
 
-    // 2. Observable exposé pour que la MainWindow puisse s'y abonner
-    public IObservable<PricedOption> PriceUpdatedStream => _priceStreamSource.AsObservable();
+    private readonly Subject<(double[] Prices, DateTime[] Times)> _chartDataSource = new();
 
-    // La liste liée à la DataGrid
+    /// <summary>Flux de données prêtes à rendre (fenêtre glissante de 50 points).</summary>
+    public IObservable<(double[] Prices, DateTime[] Times)> ChartDataStream
+        => _chartDataSource.AsObservable();
+
     public ObservableCollection<OptionDisplayViewModel> Options { get; } = new();
 
     [ObservableProperty] private bool _isStreaming;
+
+    // --- Paramètres Black-Scholes — configurables depuis l'UI ---
+    [ObservableProperty] private double _strike        = OptionParameters.Default.Strike;
+    [ObservableProperty] private double _riskFreeRate  = OptionParameters.Default.RiskFreeRate;
+    [ObservableProperty] private double _volatility    = OptionParameters.Default.Volatility;
+    [ObservableProperty] private double _timeToMaturity = OptionParameters.Default.TimeToMaturity;
+
+    private OptionParameters CurrentParameters => new()
+    {
+        Strike         = Strike,
+        RiskFreeRate   = RiskFreeRate,
+        Volatility     = Volatility,
+        TimeToMaturity = TimeToMaturity
+    };
 
     public MainViewModel(IPricingService pricingService)
     {
@@ -31,34 +51,35 @@ public partial class MainViewModel : ObservableObject, IDisposable
         StartRealTimeStream();
     }
 
+    // Redémarre le flux dès qu'un paramètre change (CommunityToolkit partial methods)
+    partial void OnStrikeChanged(double value)        => RestartStream();
+    partial void OnVolatilityChanged(double value)    => RestartStream();
+    partial void OnRiskFreeRateChanged(double value)  => RestartStream();
+    partial void OnTimeToMaturityChanged(double value) => RestartStream();
+
+    private void RestartStream()
+    {
+        _subscription?.Dispose();
+        _cts.Cancel();
+        _cts.Dispose();
+        _cts = new CancellationTokenSource();
+        StartRealTimeStream();
+    }
+
     private void StartRealTimeStream()
     {
-        // On définit les paramètres de simulation
         _subscription = _pricingService
-            .PriceStream("AAPL", strike: 150, rate: 0.05, volatility: 0.25, timeToMaturity: 0.5)
-
-            // --- PERFORMANCE ---
-            // Échantillonnage pour ne pas saturer l'UI
-            .Sample(TimeSpan.FromMilliseconds(100))
-
-            // Calculs et logique sur le TaskPool (Thread de fond)
-            .SubscribeOn(TaskPoolScheduler.Default)
-
-            // Bascule sur le Thread UI pour la modification de la collection
-            .ObserveOn(RxApp.MainThreadScheduler)
-
-            .Subscribe(pricedOption =>
-            {
-                // Mise à jour de la grille
-                UpdateOrAddOption(pricedOption);
-
-                // Notification pour le graphique (Subject)
-                _priceStreamSource.OnNext(pricedOption);
-            },
-            ex => {
-                // Log de l'erreur (important en production)
-                System.Diagnostics.Debug.WriteLine($"Erreur Flux: {ex.Message}");
-            });
+            .PriceStream("AAPL", CurrentParameters, _cts.Token)
+            .Sample(TimeSpan.FromMilliseconds(100))           // Évite de saturer l'UI
+            .SubscribeOn(TaskPoolScheduler.Default)           // Calculs sur thread pool
+            .ObserveOn(RxApp.MainThreadScheduler)            // Rendu sur thread UI
+            .Subscribe(
+                pricedOption =>
+                {
+                    UpdateOrAddOption(pricedOption);
+                    UpdateChartData(pricedOption.OptionPrice, pricedOption.Timestamp);
+                },
+                ex => System.Diagnostics.Debug.WriteLine($"[QuantTrading] Erreur flux : {ex.Message}"));
 
         IsStreaming = true;
     }
@@ -66,11 +87,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void UpdateOrAddOption(PricedOption priced)
     {
         var existing = Options.FirstOrDefault(x => x.Symbol == priced.Symbol);
-        if (existing == null)
+        if (existing is null)
         {
-            var newOption = new OptionDisplayViewModel(priced.Symbol);
-            newOption.Update(priced);
-            Options.Add(newOption);
+            var vm = new OptionDisplayViewModel(priced.Symbol);
+            vm.Update(priced);
+            Options.Add(vm);
         }
         else
         {
@@ -78,11 +99,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    private void UpdateChartData(double price, DateTime time)
+    {
+        _chartPrices.Enqueue(price);
+        _chartTimes.Enqueue(time);
+
+        if (_chartPrices.Count > ChartWindowSize)
+        {
+            _chartPrices.Dequeue(); // O(1)
+            _chartTimes.Dequeue();
+        }
+
+        _chartDataSource.OnNext((_chartPrices.ToArray(), _chartTimes.ToArray()));
+    }
+
     public void Dispose()
     {
-        // Nettoyage impératif pour éviter les fuites de mémoire (Memory Leaks)
+        _cts.Cancel();
         _subscription?.Dispose();
-        _priceStreamSource.OnNext(default); // Optionnel: signaler la fin
-        _priceStreamSource.Dispose();
+        _chartDataSource.OnCompleted(); // Fix : OnCompleted() et non OnNext(default)
+        _chartDataSource.Dispose();
+        _cts.Dispose();
     }
 }

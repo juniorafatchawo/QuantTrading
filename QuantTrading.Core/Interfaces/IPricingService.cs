@@ -1,15 +1,16 @@
-﻿using QuantTrading.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using QuantTrading.Core.Models;
 
-namespace QuantTrading.Core.Interfaces
+namespace QuantTrading.Core.Interfaces;
+
+public interface IPricingService
 {
-    public interface IPricingService
-    {
-        // Prend un flux de prix et retourne un flux d'options pricées
-        IObservable<PricedOption> PriceStream(string symbol, double strike, double rate, double volatility, double timeToMaturity);
-    }
+    /// <summary>
+    /// Prend un flux de prix et retourne un flux d'options pricées selon Black-Scholes.
+    /// </summary>
+    /// <param name="parameters">Paramètres BS regroupés en Value Object.</param>
+    /// <param name="cancellationToken">Token pour arrêter le flux proprement.</param>
+    IObservable<PricedOption> PriceStream(
+        string symbol,
+        OptionParameters parameters,
+        CancellationToken cancellationToken = default);
 }

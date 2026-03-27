@@ -1,15 +1,16 @@
-﻿using ScottPlot;
+using ScottPlot;
 using System.Reactive.Linq;
 using QuantTrading.UI.ViewModels;
 using System.Windows;
-using QuantTrading.Core.Models;
 
 namespace QuantTrading.UI;
 
+/// <summary>
+/// Code-behind strictement limité au rendu ScottPlot (MVVM : aucune logique métier ici).
+/// Toute la gestion des données est dans MainViewModel.
+/// </summary>
 public partial class MainWindow : Window
 {
-    private readonly List<double> _priceHistory = new();
-    private readonly List<DateTime> _timeHistory = new();
     private IDisposable? _plotSubscription;
 
     public MainWindow()
@@ -22,8 +23,8 @@ public partial class MainWindow : Window
     {
         PricePlot.Plot.Axes.DateTimeTicksBottom();
         PricePlot.Plot.FigureBackground.Color = Color.FromHex("#1E1E1E");
-        PricePlot.Plot.DataBackground.Color = Color.FromHex("#1E1E1E");
-        PricePlot.Plot.Grid.MajorLineColor = Color.FromHex("#444444");
+        PricePlot.Plot.DataBackground.Color   = Color.FromHex("#1E1E1E");
+        PricePlot.Plot.Grid.MajorLineColor    = Color.FromHex("#444444");
         PricePlot.Plot.Axes.Color(Color.FromHex("#FFFFFF"));
         PricePlot.Refresh();
     }
@@ -32,48 +33,33 @@ public partial class MainWindow : Window
     {
         base.OnActivated(e);
 
-        // Sécurité : on ne s'abonne qu'une seule fois
-        if (_plotSubscription != null) return;
+        if (_plotSubscription is not null) return;
 
         if (DataContext is MainViewModel vm)
         {
-            _plotSubscription = vm.PriceUpdatedStream
+            // On s'abonne au flux de données préparé par le ViewModel
+            _plotSubscription = vm.ChartDataStream
                 .ObserveOn(System.Reactive.Concurrency.DispatcherScheduler.Current)
-                .Subscribe(priced =>
-                {
-                    UpdatePlot(priced.OptionPrice, priced.Timestamp);
-                });
+                .Subscribe(data => RenderChart(data.Prices, data.Times));
         }
     }
 
-    private void UpdatePlot(double newPrice, DateTime time)
+    /// <summary>Rendu pur ScottPlot — aucune logique de données ici.</summary>
+    private void RenderChart(double[] prices, DateTime[] times)
     {
-        _priceHistory.Add(newPrice);
-        _timeHistory.Add(time);
-
-        // Garder une fenêtre glissante de 50 points
-        if (_priceHistory.Count > 50)
-        {
-            _priceHistory.RemoveAt(0);
-            _timeHistory.RemoveAt(0);
-        }
-
         PricePlot.Plot.Clear();
 
-        // Conversion des dates pour ScottPlot
-        double[] xs = _timeHistory.Select(t => t.ToOADate()).ToArray();
-        double[] ys = _priceHistory.ToArray();
+        if (prices.Length == 0) return;
 
-        if (xs.Length > 0)
-        {
-            var scatter = PricePlot.Plot.Add.Scatter(xs, ys);
-            scatter.Color = Color.FromHex("#2ECC71");
-            scatter.LineWidth = 2;
-            scatter.MarkerSize = 0; // On ne veut que la ligne pour un look trading clean
+        double[] xs = times.Select(t => t.ToOADate()).ToArray();
 
-            PricePlot.Plot.Axes.AutoScale();
-            PricePlot.Refresh();
-        }
+        var scatter = PricePlot.Plot.Add.Scatter(xs, prices);
+        scatter.Color      = Color.FromHex("#2ECC71");
+        scatter.LineWidth  = 2;
+        scatter.MarkerSize = 0;
+
+        PricePlot.Plot.Axes.AutoScale();
+        PricePlot.Refresh();
     }
 
     protected override void OnClosed(EventArgs e)

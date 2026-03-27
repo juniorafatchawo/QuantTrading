@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantTrading.Engine", "Quan
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantTrading.UI", "QuantTrading.UI\QuantTrading.UI.csproj", "{B5364C6E-FD63-4991-8E28-C446C079E6FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantTrading.Benchmarks", "QuantTrading.Benchmarks\QuantTrading.Benchmarks.csproj", "{F066B6FE-F279-4D53-8287-26B437BEC32C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,18 +55,6 @@ Global
 		{B5364C6E-FD63-4991-8E28-C446C079E6FD}.Release|x64.Build.0 = Release|Any CPU
 		{B5364C6E-FD63-4991-8E28-C446C079E6FD}.Release|x86.ActiveCfg = Release|Any CPU
 		{B5364C6E-FD63-4991-8E28-C446C079E6FD}.Release|x86.Build.0 = Release|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Debug|x64.Build.0 = Debug|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Debug|x86.Build.0 = Debug|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Release|x64.ActiveCfg = Release|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Release|x64.Build.0 = Release|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Release|x86.ActiveCfg = Release|Any CPU
-		{F066B6FE-F279-4D53-8287-26B437BEC32C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

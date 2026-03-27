@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using QuantTrading.UI.ViewModels;
 using System.Windows;
-using QuantTading.Engine.Services;
 using QuantTrading.Core.Interfaces;
+using QuantTrading.Engine.Services;
 
 namespace QuantTrading.UI
 {
