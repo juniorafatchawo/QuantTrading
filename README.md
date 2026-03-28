@@ -1,5 +1,6 @@
 # 📈 QuantTrading Portfolio : Real-Time Options Pricing Engine
 
+[![Build & Test](https://github.com/juniorafatchawo/QuantTrading/actions/workflows/build.yml/badge.svg)](https://github.com/juniorafatchawo/QuantTrading/actions/workflows/build.yml)
 ![.NET 8](https://img.shields.io/badge/.NET-8.0-blueviolet)
 ![WPF](https://img.shields.io/badge/UI-WPF-blue)
 ![Rx.NET](https://img.shields.io/badge/Reactive-Rx.NET-orange)
