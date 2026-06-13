@@ -11,6 +11,8 @@ public class PricingService : IPricingService
     private readonly IMarketDataService _marketDataService;
     private readonly ILogger<PricingService> _logger;
 
+    private const int MaxRetries = 5;
+
     public PricingService(IMarketDataService marketDataService, ILogger<PricingService> logger)
     {
         _marketDataService = marketDataService;
@@ -47,6 +49,17 @@ public class PricingService : IPricingService
             .Do(
                 _ => { },
                 ex => _logger.LogError(ex, "Error in pricing stream for {Symbol}", symbol),
-                () => _logger.LogInformation("Pricing stream completed for {Symbol}", symbol));
+                () => _logger.LogInformation("Pricing stream completed for {Symbol}", symbol))
+            .RetryWhen(errors => errors
+                .Take(MaxRetries)
+                .Select((ex, attempt) => (ex, attempt))
+                .SelectMany(t =>
+                {
+                    var delay = TimeSpan.FromSeconds(Math.Pow(2, t.attempt));
+                    _logger.LogWarning(t.ex,
+                        "Pricing stream error for {Symbol} (attempt {Attempt}/{Max}), retry in {Delay}s",
+                        symbol, t.attempt + 1, MaxRetries, delay.TotalSeconds);
+                    return Observable.Timer(delay);
+            }));
     }
 }

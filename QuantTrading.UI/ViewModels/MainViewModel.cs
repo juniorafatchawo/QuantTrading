@@ -32,6 +32,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<OptionDisplayViewModel> Options { get; } = new();
 
     [ObservableProperty] private bool _isStreaming;
+    [ObservableProperty] private bool _isConnected = true;
 
     // --- Paramètres Black-Scholes — configurables depuis l'UI ---
     [ObservableProperty] private double _strike        = OptionParameters.Default.Strike;
@@ -82,7 +83,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
                     UpdateOrAddOption(pricedOption);
                     UpdateChartData(pricedOption.OptionPrice, pricedOption.Timestamp);
                 },
-                ex => _logger.LogError(ex, "Error in UI pricing subscription"));
+                ex =>
+                {
+                    _logger.LogCritical(ex, "Pricing stream permanently failed for {Symbol} after exhausting retries", "AAPL");
+                    IsConnected = false;
+                    IsStreaming = false;
+                });
 
         IsStreaming = true;
     }

@@ -50,7 +50,12 @@ public class RandomMarketDataService : IMarketDataService
                 .TakeUntil(cancelSignal)
                 .Select(_ =>
                 {
-                    var change = (random.NextDouble() - 0.5) * (currentPrice * 0.002); // ±0.1%
+                    if (random.NextDouble() < 0.0005)
+                    {
+                        throw new InvalidOperationException($"Simulated feed disruption for {symbol}");
+                    }
+
+                    var change = (random.NextDouble() - 0.5) * (currentPrice * 0.002);
                     currentPrice += change;
                     return new MarketTick(symbol, currentPrice, DateTime.UtcNow);
                 })

@@ -17,6 +17,7 @@ namespace QuantTrading.UI
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
+                .Enrich.FromLogContext()      
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.File("logs/quanttrading.log",
                     rollingInterval: RollingInterval.Day,
@@ -32,13 +33,6 @@ namespace QuantTrading.UI
         private static IServiceProvider ConfigureServices()
         {
             var services = new ServiceCollection();
-
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.File("logs/quanttrading-.log", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
 
             services.AddLogging(builder => builder.AddSerilog(dispose: true));
 
