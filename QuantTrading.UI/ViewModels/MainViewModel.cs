@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using QuantTrading.Core.Interfaces;
 using QuantTrading.Core.Models;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Reactive.Concurrency;
@@ -12,6 +13,7 @@ namespace QuantTrading.UI.ViewModels;
 public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IPricingService _pricingService;
+    private readonly ILogger<MainViewModel> _logger;
     private IDisposable? _subscription;
     private CancellationTokenSource _cts = new();
 
@@ -45,9 +47,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         TimeToMaturity = TimeToMaturity
     };
 
-    public MainViewModel(IPricingService pricingService)
+    public MainViewModel(IPricingService pricingService, ILogger<MainViewModel> logger)
     {
         _pricingService = pricingService;
+        _logger = logger;
         StartRealTimeStream();
     }
 
@@ -79,7 +82,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
                     UpdateOrAddOption(pricedOption);
                     UpdateChartData(pricedOption.OptionPrice, pricedOption.Timestamp);
                 },
-                ex => System.Diagnostics.Debug.WriteLine($"[QuantTrading] Erreur flux : {ex.Message}"));
+                ex => _logger.LogError(ex, "Error in UI pricing subscription"));
 
         IsStreaming = true;
     }

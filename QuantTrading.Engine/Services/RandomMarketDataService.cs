@@ -2,11 +2,14 @@ using System.Reactive;
 using System.Reactive.Linq;
 using QuantTrading.Core.Interfaces;
 using QuantTrading.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace QuantTrading.Engine.Services;
 
 public class RandomMarketDataService : IMarketDataService
 {
+    private readonly ILogger<RandomMarketDataService> _logger;
+
     private readonly Dictionary<string, double> _initialPrices = new()
     {
         { "EURUSD",  1.10    },
@@ -15,10 +18,18 @@ public class RandomMarketDataService : IMarketDataService
         { "SPY",     400.0   }
     };
 
+    public RandomMarketDataService(ILogger<RandomMarketDataService> logger)
+    {
+        _logger = logger;
+    }
+
     public IObservable<MarketTick> GetTickerStream(string symbol, CancellationToken cancellationToken = default)
     {
         if (!_initialPrices.ContainsKey(symbol))
+        {
+            _logger.LogError("Unknown symbol requested: {Symbol}", symbol);
             throw new ArgumentException($"Symbole inconnu pour la simulation : {symbol}", nameof(symbol));
+        }
 
         double currentPrice = _initialPrices[symbol];
         var random = Random.Shared;
@@ -29,6 +40,8 @@ public class RandomMarketDataService : IMarketDataService
             var reg = cancellationToken.Register(() => { obs.OnNext(Unit.Default); obs.OnCompleted(); });
             return () => reg.Unregister();
         });
+
+        _logger.LogInformation("Starting market data stream for {Symbol} at initial price {Price}", symbol, currentPrice);
 
         return Observable.Create<MarketTick>(observer =>
         {
